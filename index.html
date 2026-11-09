@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>D13 InSite</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+:root{--ink:#14181F;--sub:#5B6472;--line:#C9CDD2;--bg:#F2F3F5;--black:#0B0B0C;--lime:#CEEB05}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:'IBM Plex Sans Thai',sans-serif;color:var(--ink);font-size:15px}
+header{background:var(--black);color:#fff;padding:14px 16px 12px;border-bottom:3px solid var(--lime);display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:5}
+.mark{border:2px solid var(--lime);color:var(--lime);font-weight:700;padding:4px 8px;border-radius:6px}
+header .t{flex:1;display:flex;flex-direction:column}header b{font-size:17px}header small{color:#C9CDD2;font-size:12px}
+.lang{display:flex;border:1px solid #55595F;border-radius:99px;overflow:hidden}
+.lang button{height:30px;min-width:40px;border:0;background:transparent;color:#C9CDD2;font:inherit;font-size:12px}
+.lang button.on{background:var(--lime);color:var(--black);font-weight:700}
+nav{display:flex;gap:6px;padding:10px 16px 0;flex-wrap:wrap}
+nav button,.chip{height:36px;padding:0 14px;border-radius:99px;border:1px solid var(--line);background:#fff;font:inherit;font-size:13px}
+nav button.on,.chip.on{background:var(--black);color:var(--lime);border-color:var(--black);font-weight:600}
+main{padding:14px 16px 110px;display:flex;flex-direction:column;gap:14px}
+label.h,.h{font-size:13px;font-weight:600;display:block;margin-bottom:6px}
+select,input,textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;font-size:15px;background:#fff}
+select,input{height:46px}
+.opt{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+.opt.on{border:2px solid var(--black)}.opt input{width:20px;height:20px;accent-color:var(--black)}
+.late{font-size:11px;font-weight:600;background:#F9E1DF;color:#A42A22;padding:2px 8px;border-radius:99px;white-space:nowrap}
+.photos{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.photos img,.add{aspect-ratio:1;width:100%;object-fit:cover;border-radius:8px}
+.add{border:2px dashed #8A93A0;background:#fff;display:flex;align-items:center;justify-content:center}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.card{background:#fff;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.card .row{display:flex;justify-content:space-between;gap:8px}.card small{color:var(--sub)}
+.group{font-size:13px;font-weight:600;color:var(--sub);margin:4px 0 -4px}
+.bar{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(16px + env(safe-area-inset-bottom));background:var(--bg)}
+.go{width:100%;height:52px;border:0;border-radius:12px;background:var(--lime);color:var(--black);font:inherit;font-size:17px;font-weight:700}
+.go:disabled{opacity:.5}
+.btn2{display:flex;gap:8px}.btn2 button{flex:1;height:40px;border-radius:10px;border:1px solid var(--line);background:#fff;font:inherit;font-size:14px}
+.btn2 button.p{background:var(--lime);border:0;font-weight:600}
+.msg{background:#fff;border-radius:12px;padding:16px;text-align:center}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <span class="mark">D13</span>
+  <div class="t"><b id="title">D13 InSite</b><small id="sub"></small></div>
+  <div class="lang"><button data-l="th">TH</button><button data-l="en">EN</button></div>
+</header>
+<nav id="nav"></nav>
+<main id="main"><div class="msg" id="loading">กำลังโหลด…</div></main>
+<div class="bar hide" id="bar"><button class="go" id="go"></button></div>
+
+<script>
+var API = 'https://script.google.com/macros/s/AKfycbx_3nx4rp1EVVuOG-fEMASrILCSmvMY-bk6InSKzU89hOwg0eOH_mzFX84bozIq07N-/exec';
+var LIFF_ID = '2012498843-3ALnRvdn';
+var SHEET = 'https://docs.google.com/spreadsheets/d/1JkOMuLQUjXCNNqoyMuLbwnPtDhU6i_Bb-9PiBU6WsKU/edit';
+
+var T = {
+  th: { submit:'ส่งงานวันนี้', queue:'คิวงานของฉัน', assign:'สั่งงาน', site:'1. ไซต์', task:'2. งานจากคิวของฉัน', photos:'3. รูปหน้างาน',
+    text:'4. ทำอะไรไปบ้าง (พิมพ์สั้นๆ ได้)', status:'5. สถานะ', send:'ส่งงาน', sending:'กำลังส่ง…', sent:'ส่งงานเรียบร้อย ขอบคุณครับ',
+    noTask:'ไม่มีงานค้างในไซต์นี้', overdue:'เลย {n} วัน', due:'กำหนด', nodue:'ไม่มีกำหนดส่ง', all:'ทั้งหมด', late:'เลยกำหนด',
+    change:'เปลี่ยนสถานะ', doSubmit:'ส่งงาน', empty:'ไม่มีงานค้าง 🎉', aSite:'ไซต์', aParent:'อยู่ใต้งานหลัก (ไม่บังคับ)', aNew:'— เป็นงานหลักใหม่ —',
+    aName:'ชื่องาน / รายละเอียด', aOwner:'ผู้รับผิดชอบ', aStart:'วันเริ่ม', aDue:'กำหนดส่ง', aStatus:'สถานะเริ่มต้น', aGo:'สั่งงาน',
+    aDone:'สั่งงานแล้ว ผู้รับผิดชอบได้รับแจ้งเตือนใน LINE', need:'กรอกให้ครบก่อนนะครับ', notReg:'ยังไม่ได้ลงทะเบียน พิมพ์ "ลงทะเบียน ชื่อเล่น" ในแชท D13 InSite ก่อนครับ',
+    err:'เกิดข้อผิดพลาด ลองใหม่อีกครั้ง', overview:'ภาพรวม (Google Sheet)',
+    st:{'เสร็จแล้ว':'เสร็จแล้ว','กำลังดำเนินการ':'กำลังดำเนินการ','รอข้อมูล / รอผู้อื่น':'รอข้อมูล / รอผู้อื่น','เร่งด่วน':'เร่งด่วน','ยังไม่อัปเดต':'ยังไม่อัปเดต'} },
+  en: { submit:"Submit Today's Work", queue:'My Queue', assign:'Assign Task', site:'1. Site', task:'2. Task from my queue', photos:'3. Site photos',
+    text:'4. What was done (short note is fine)', status:'5. Status', send:'Submit', sending:'Sending…', sent:'Submitted. Thank you!',
+    noTask:'No open tasks at this site', overdue:'{n} days late', due:'Due', nodue:'No due date', all:'All', late:'Overdue',
+    change:'Change status', doSubmit:'Submit work', empty:'No open tasks 🎉', aSite:'Site', aParent:'Under main task (optional)', aNew:'— New main task —',
+    aName:'Task / details', aOwner:'Assigned to', aStart:'Start date', aDue:'Due date', aStatus:'Initial status', aGo:'Assign',
+    aDone:'Task assigned. The owner was notified in LINE.', need:'Please fill in all fields', notReg:'Not registered yet. Type "ลงทะเบียน <nickname>" in the D13 InSite chat first.',
+    err:'Something went wrong. Please try again.', overview:'Overview (Google Sheet)',
+    st:{'เสร็จแล้ว':'Done','กำลังดำเนินการ':'In progress','รอข้อมูล / รอผู้อื่น':'Waiting on others','เร่งด่วน':'Urgent','ยังไม่อัปเดต':'Not updated'} }
+};
+var STC = {'เสร็จแล้ว':'#1F8A5B','กำลังดำเนินการ':'#2A6FDB','รอข้อมูล / รอผู้อื่น':'#A86A00','เร่งด่วน':'#C7352B','ยังไม่อัปเดต':'#5B6472'};
+
+var S = { lang:'th', view:'submit', data:null, site:'', taskId:'', status:'กำลังดำเนินการ', photos:[], filter:'all',
+          a:{ site:'', parentId:'', name:'', owner:'', start:'', due:'', status:'ยังไม่อัปเดต' } };
+try { S.lang = localStorage.getItem('d13lang') || 'th'; } catch (e) {}
+var q = new URLSearchParams(location.search);
+if (q.get('view')) S.view = q.get('view');
+
+function t(k){ return T[S.lang][k]; }
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function $(id){ return document.getElementById(id); }
+
+async function api(action, body){
+  var res = await fetch(API, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify(Object.assign({ action: action, idToken: liff.getIDToken() }, body || {})) });
+  var j = await res.json();
+  if (!j.ok) throw new Error(j.error || 'error');
+  return j.data;
+}
+
+async function boot(){
+  try {
+    await liff.init({ liffId: LIFF_ID });
+    if (!liff.isLoggedIn()) { liff.login({ redirectUri: location.href }); return; }
+    if (S.view === 'overview') { liff.openWindow({ url: SHEET, external: true }); }
+    S.data = await api('me');
+    if (S.data.sites.length) { S.site = S.data.sites[0].code; S.a.site = S.data.sites[0].code; }
+    var mySite = S.data.tasks[0]; if (mySite) S.site = mySite.site;
+    render();
+  } catch (e) {
+    $('main').innerHTML = '<div class="msg">' + esc(e.message === 'not_registered' ? t('notReg') : t('err') + ' (' + e.message + ')') + '</div>';
+  }
+}
+
+function siteName(code){ var s = (S.data.sites || []).filter(function(x){ return x.code === code; })[0]; return s ? s.name : code; }
+
+function render(){
+  document.documentElement.lang = S.lang;
+  document.querySelectorAll('.lang button').forEach(function(b){ b.classList.toggle('on', b.dataset.l === S.lang); });
+  var me = S.data.me;
+  $('sub').textContent = me.nick + ' · ' + me.role;
+  var tabs = ['submit','queue'].concat(me.canAssign ? ['assign'] : []);
+  if (tabs.indexOf(S.view) < 0) S.view = 'submit';
+  $('title').textContent = t(S.view);
+  $('nav').innerHTML = tabs.map(function(v){ return '<button data-v="'+v+'" class="'+(v===S.view?'on':'')+'">'+esc(t(v))+'</button>'; }).join('') +
+    (me.canAssign ? '<button data-v="overview">'+esc(t('overview'))+'</button>' : '');
+  ({ submit: renderSubmit, queue: renderQueue, assign: renderAssign })[S.view]();
+}
+
+/* ---------- ส่งงาน ---------- */
+function renderSubmit(){
+  var tasks = S.data.tasks.filter(function(x){ return x.site === S.site; });
+  if (!tasks.some(function(x){ return x.id === S.taskId; })) S.taskId = tasks[0] ? tasks[0].id : '';
+  var sites = S.data.sites.filter(function(s){ return S.data.tasks.some(function(x){ return x.site === s.code; }); });
+  if (!sites.length) sites = S.data.sites;
+  $('main').innerHTML =
+    '<div><label class="h" for="site">'+t('site')+'</label><select id="site">'+sites.map(function(s){ return '<option value="'+esc(s.code)+'"'+(s.code===S.site?' selected':'')+'>'+esc(s.name)+'</option>'; }).join('')+'</select></div>'+
+    '<div><span class="h">'+t('task')+'</span>'+(tasks.length ? tasks.map(function(x){
+      return '<label class="opt'+(x.id===S.taskId?' on':'')+'"><input type="radio" name="task" value="'+x.id+'"'+(x.id===S.taskId?' checked':'')+'><span style="flex:1">'+esc(x.name)+(x.parent?'<br><small style="color:var(--sub)">'+esc(x.parent)+'</small>':'')+'</span>'+
+        (x.overdueDays?'<span class="late">'+t('overdue').replace('{n}',x.overdueDays)+'</span>':'')+'</label>'; }).join('') : '<div class="msg">'+t('noTask')+'</div>')+'</div>'+
+    '<div><span class="h">'+t('photos')+'</span><div class="photos">'+S.photos.map(function(p,i){ return '<img src="'+p+'" data-i="'+i+'" alt="">'; }).join('')+
+      '<label class="add" aria-label="photo"><input type="file" accept="image/*" multiple id="file" class="hide"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#14181F" stroke-width="2" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></label></div></div>'+
+    '<div><label class="h" for="text">'+t('text')+'</label><textarea id="text" rows="3"></textarea></div>'+
+    '<div><span class="h">'+t('status')+'</span><div class="chips">'+['เสร็จแล้ว','กำลังดำเนินการ','รอข้อมูล / รอผู้อื่น','เร่งด่วน'].map(function(s){
+      return '<button type="button" class="chip" data-s="'+s+'" style="'+(s===S.status?'background:'+STC[s]+';color:#fff;border-color:'+STC[s]:'color:'+STC[s]+';border-color:'+STC[s])+'">'+esc(t('st')[s])+'</button>'; }).join('')+'</div></div>';
+  bar(t('send'), !tasks.length, doSubmit);
+  $('site').onchange = function(){ S.site = this.value; renderSubmit(); };
+  document.querySelectorAll('input[name=task]').forEach(function(r){ r.onchange = function(){ S.taskId = this.value; renderSubmit(); }; });
+  document.querySelectorAll('[data-s]').forEach(function(b){ b.onclick = function(){ S.status = this.dataset.s; var v = $('text').value; renderSubmit(); $('text').value = v; }; });
+  document.querySelectorAll('.photos img').forEach(function(im){ im.onclick = function(){ S.photos.splice(+this.dataset.i,1); var v=$('text').value; renderSubmit(); $('text').value=v; }; });
+  $('file').onchange = async function(){ var v = $('text').value; for (var f of this.files) { if (S.photos.length < 10) S.photos.push(await shrink(f)); } renderSubmit(); $('text').value = v; };
+}
+
+function shrink(file){
+  return new Promise(function(ok){
+    var img = new Image(); img.onload = function(){
+      var m = 1600, w = img.width, h = img.height, k = Math.min(1, m / Math.max(w, h));
+      var c = document.createElement('canvas'); c.width = Math.round(w*k); c.height = Math.round(h*k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); ok(c.toDataURL('image/jpeg', 0.8)); URL.revokeObjectURL(img.src);
+    }; img.src = URL.createObjectURL(file);
+  });
+}
+
+async function doSubmit(){
+  var text = $('text').value.trim();
+  if (!S.taskId || (!text && !S.photos.length)) return alertMsg(t('need'));
+  busy(true);
+  try {
+    await api('submit', { taskId: S.taskId, text: text, status: S.status, photos: S.photos });
+    S.photos = []; S.data = await api('me');
+    $('main').innerHTML = '<div class="msg">✅ '+t('sent')+'</div>'; $('bar').classList.add('hide');
+    setTimeout(function(){ render(); }, 1500);
+  } catch (e) { alertMsg(t('err') + ' (' + e.message + ')'); busy(false); }
+}
+
+/* ---------- คิวงานของฉัน ---------- */
+function renderQueue(){
+  $('bar').classList.add('hide');
+  var list = S.data.tasks.filter(function(x){ return S.filter === 'all' || x.overdueDays > 0; });
+  var by = {}; list.forEach(function(x){ (by[x.site] = by[x.site] || []).push(x); });
+  $('main').innerHTML =
+    '<div class="chips"><button class="chip'+(S.filter==='all'?' on':'')+'" data-f="all">'+t('all')+' ('+S.data.tasks.length+')</button>'+
+    '<button class="chip'+(S.filter==='late'?' on':'')+'" data-f="late">'+t('late')+' ('+S.data.tasks.filter(function(x){ return x.overdueDays>0; }).length+')</button></div>'+
+    (list.length ? Object.keys(by).map(function(code){
+      return '<div class="group">'+esc(siteName(code))+'</div>'+by[code].map(function(x){
+        return '<div class="card"><div class="row"><b>'+esc(x.name)+'</b>'+(x.overdueDays?'<span class="late">'+t('overdue').replace('{n}',x.overdueDays)+'</span>':'')+'</div>'+
+          '<small>'+(x.due ? t('due')+' '+esc(x.due) : t('nodue'))+' · <b style="color:'+STC[x.status]+'">'+esc(t('st')[x.status]||x.status)+'</b></small>'+
+          (x.progress ? '<span style="font-size:13px">'+esc(x.progress)+'</span>' : '')+
+          '<div class="btn2"><button class="p" data-go="'+x.id+'" data-site="'+esc(x.site)+'">'+t('doSubmit')+'</button>'+
+          '<select data-st="'+x.id+'" style="flex:1;height:40px">'+['<option value="">'+t('change')+'</option>'].concat(S.data.statuses.map(function(s){ return '<option value="'+s+'">'+esc(t('st')[s])+'</option>'; })).join('')+'</select></div></div>';
+      }).join('');
+    }).join('') : '<div class="msg">'+t('empty')+'</div>');
+  document.querySelectorAll('[data-f]').forEach(function(b){ b.onclick = function(){ S.filter = this.dataset.f; renderQueue(); }; });
+  document.querySelectorAll('[data-go]').forEach(function(b){ b.onclick = function(){ S.view='submit'; S.site=this.dataset.site; S.taskId=this.dataset.go; render(); }; });
+  document.querySelectorAll('[data-st]').forEach(function(s){ s.onchange = async function(){
+    if (!this.value) return; try { await api('status', { taskId: this.dataset.st, status: this.value }); S.data = await api('me'); renderQueue(); } catch (e) { alertMsg(t('err')); } }; });
+}
+
+/* ---------- สั่งงาน ---------- */
+function renderAssign(){
+  var a = S.a;
+  var parents = (S.data.parents || []).filter(function(p){ return p.site === a.site; });
+  $('main').innerHTML =
+    '<div><label class="h" for="aSite">'+t('aSite')+'</label><select id="aSite">'+S.data.sites.map(function(s){ return '<option value="'+esc(s.code)+'"'+(s.code===a.site?' selected':'')+'>'+esc(s.name)+'</option>'; }).join('')+'</select></div>'+
+    '<div><label class="h" for="aParent">'+t('aParent')+'</label><select id="aParent"><option value="">'+t('aNew')+'</option>'+parents.map(function(p){ return '<option value="'+p.id+'"'+(p.id===a.parentId?' selected':'')+'>'+esc(p.name)+'</option>'; }).join('')+'</select></div>'+
+    '<div><label class="h" for="aName">'+t('aName')+'</label><textarea id="aName" rows="2">'+esc(a.name)+'</textarea></div>'+
+    '<div><span class="h">'+t('aOwner')+'</span><div class="chips">'+(S.data.team||[]).map(function(n){ return '<button type="button" class="chip'+(n===a.owner?' on':'')+'" data-o="'+esc(n)+'">'+esc(n)+'</button>'; }).join('')+'</div></div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><label class="h" for="aStart">'+t('aStart')+'</label><input type="date" id="aStart" value="'+a.start+'"></div>'+
+      '<div><label class="h" for="aDue">'+t('aDue')+'</label><input type="date" id="aDue" value="'+a.due+'"></div></div>'+
+    '<div><span class="h">'+t('aStatus')+'</span><div class="chips">'+['ยังไม่อัปเดต','เร่งด่วน'].map(function(s){ return '<button type="button" class="chip'+(s===a.status?' on':'')+'" data-as="'+s+'">'+esc(t('st')[s])+'</button>'; }).join('')+'</div></div>';
+  bar(t('aGo'), false, doAssign);
+  function keep(){ a.name = $('aName').value; a.start = $('aStart').value; a.due = $('aDue').value; a.parentId = $('aParent').value; }
+  $('aSite').onchange = function(){ keep(); a.site = this.value; a.parentId = ''; renderAssign(); };
+  document.querySelectorAll('[data-o]').forEach(function(b){ b.onclick = function(){ keep(); a.owner = this.dataset.o; renderAssign(); }; });
+  document.querySelectorAll('[data-as]').forEach(function(b){ b.onclick = function(){ keep(); a.status = this.dataset.as; renderAssign(); }; });
+  S.keep = keep;
+}
+
+async function doAssign(){
+  S.keep(); var a = S.a;
+  if (!a.site || !a.name.trim() || !a.owner) return alertMsg(t('need'));
+  busy(true);
+  try {
+    await api('assign', a);
+    S.a = { site: a.site, parentId:'', name:'', owner:'', start:'', due:'', status:'ยังไม่อัปเดต' };
+    S.data = await api('me');
+    $('main').innerHTML = '<div class="msg">✅ '+t('aDone')+'</div>'; $('bar').classList.add('hide');
+    setTimeout(function(){ render(); }, 1500);
+  } catch (e) { alertMsg(t('err') + ' (' + e.message + ')'); busy(false); }
+}
+
+/* ---------- ตัวช่วย ---------- */
+function bar(label, disabled, fn){ $('bar').classList.remove('hide'); var g = $('go'); g.textContent = label; g.disabled = disabled; g.onclick = fn; g.dataset.label = label; }
+function busy(on){ var g = $('go'); g.disabled = on; g.textContent = on ? t('sending') : g.dataset.label; }
+function alertMsg(m){ var d = document.createElement('div'); d.className = 'msg'; d.style.cssText = 'position:fixed;left:16px;right:16px;bottom:90px;box-shadow:0 4px 20px rgba(0,0,0,.2)'; d.textContent = m; document.body.appendChild(d); setTimeout(function(){ d.remove(); }, 2500); }
+
+document.querySelectorAll('.lang button').forEach(function(b){ b.onclick = function(){ S.lang = this.dataset.l; try { localStorage.setItem('d13lang', S.lang); } catch (e) {} if (S.data) render(); }; });
+$('nav').onclick = function(e){ var v = e.target.dataset && e.target.dataset.v; if (!v) return;
+  if (v === 'overview') return liff.openWindow({ url: SHEET, external: true });
+  S.view = v; render(); };
+boot();
+</script>
+</body>
+</html>
